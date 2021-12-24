@@ -3,6 +3,7 @@ package GolangContext
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"testing"
 )
 
@@ -41,5 +42,38 @@ func TestContextWithValue(t *testing.T) {
 	fmt.Println(contextF.Value("c"))
 	fmt.Println(contextF.Value("b"))
 	fmt.Println(contextA.Value("b"))
+
+}
+
+//membuat goroutine untuk mengirim data terus terusan kedalam sebuah channel
+func CreateCounter() chan int {
+	destination := make(chan int)
+	//isi dari channel
+	go func() {
+		//memastkan untuk close
+		defer close(destination)
+		counter := 1
+		//perulangan untuk
+		for {
+			destination <- counter
+			counter++
+		}
+	}()
+	return destination
+}
+
+func TestContextWithCancel(t *testing.T) {
+	fmt.Println("Total Goroutine", runtime.NumGoroutine())
+	destination := CreateCounter()
+
+	for n := range destination {
+		fmt.Println("Counter", n)
+		//menghentikan perulangan jika sudah sampai 10
+		if n == 10 {
+			break
+		}
+
+	}
+	fmt.Println("Total Goroutine", runtime.NumGoroutine())
 
 }
